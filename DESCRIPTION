@@ -1,0 +1,32 @@
+Package: GNArchitect
+Title: Focused Architecture Search for Genome Sequence Data
+Description: Robust framework for automated hyperparameter optimization and
+  architecture search using 'deepG' and 'mlrMBO'.
+Authors@R: c(
+  person("Martin", "Binder", email = "genomenet.developer@mb706.com", role = c("aut", "cre")),
+  person("Hüseyin Anil", "Gündüz", email = "anil.guenduez@stat.uni-muenchen.de", role = "aut"))
+URL: https://github.com/GenomeNet/Architect
+BugReports: https://github.com/GenomeNet/Architect/issues
+License: AGPL-3 + file LICENSE
+Encoding: UTF-8
+Version: 0.0.1
+ByteCompile: yes
+Depends:
+  R (>= 3.6),
+Imports:
+  ParamHelpers (>= 1.14),
+  mlr,
+  mlrMBO (>= 1.1.4-9000),
+  parallelMap (>= 1.5.0.9000),
+  deepG (>= 0.2.0),
+  batchtools,
+  smoof,
+  DiceKriging,
+  mlrCPO,
+  data.table,
+  checkmate,
+  keras,
+  tensorflow,
+  callr,
+  magrittr
+RoxygenNote: 7.2.2
