@@ -1,5 +1,8 @@
 
 
+
+
+
 ggplot(copy(optpath.xyz)[dob > 0][, .(xtime = max(exec.time, na.rm = TRUE)), by = c("runid", "dob")][, alltime := cumsum(nafill(xtime, fill = 0)), by = "runid"], aes(x = dob, y = alltime / 3600 / 24, color = as.factor(runid))) + geom_point()
 
 
@@ -15,15 +18,11 @@ ggplot(copy(optpath.xyz)[, `:=`(ymax = cummax(y), dob = seq_along(y)), by = "run
 
 ggplot(optpath.xyz, aes(x = dob, y = y, color = as.factor(runid))) + geom_jitter() + ylim(0, 1)
 
-optpath.xyz
-
-
-
-
 ggplot(optpath.xyz, aes(x = dob, y = perf.loss, color = as.factor(runid))) + geom_jitter() + ylim(0.3, 1)
 
 ggplot(optpath.xyz, aes(x = dob, y = numepochs, color = as.factor(runid))) + geom_jitter()
 ggplot(optpath.xyz, aes(x = dob, y = log(exec.time / 3600 / 2) / log(3), color = as.factor(runid))) + geom_jitter()
+
 plot(sort(optpath.xyz$exec.time))
 
 # excess time log10 / hours
