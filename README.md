@@ -2,6 +2,13 @@
 
 ## Installation
 
+First, install `tensorflow`, as it is needed by `deepG`.
+
+```r
+install.packages("tensorflow")
+tensorflow::install_tensorflow()
+```
+
 Evaluation currently needs an old version of `deepG`, and a few other other packages with bugfix-patches applied that are not yet upstream:
 
 ```r
@@ -16,7 +23,16 @@ Then install the GNArchitect package:
 remotes::install_github("GenomeNet/Architect")
 ```
 
-## MBO Experiments
+## Running Optimization
+
+### Prepare Data
+
+Training data should be saved in the `trainingdata/` folder.
+There should be one folder for each class.
+Each of these folders in return should contain a folder `train/` for training and `validation/` for validation.
+You can modify the `experiments/config/experimentinfo.R` file to use data in a different location.
+
+
 
 Scripts that help conducting the experiments are located in the `experiments/` folder.
 
