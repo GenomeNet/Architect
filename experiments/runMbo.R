@@ -1,12 +1,14 @@
 #!/usr/bin/env Rscript
 
 # initialize, or run, MBO
+library("checkmate")
 
-source("run.conf")
+source("experiments/config/run.conf")
 assertString(OUTPUTDIR, .var.name = "OUTPUTDIR, which should be defined in run.conf")
 
-source("config/parallelization.R")  # start parallelization
-source("config/mboruns.R")
+source("experiments/config/experimentinfo.R")
+source("experiments/config/parallelization.R")  # start parallelization
+source("experiments/config/mboruns.R")
 
 library("GNArchitect")
 
@@ -57,7 +59,7 @@ if (arguments[[1]] == "init") {
   maxlen <- runs[i, maxlen]
   initMboRun(save.file.path,
     maxlen = maxlen, residual_block = runs[i, residual_block], type = runs[i, type], fidelity = fidelity,
-    getEpochsDesired = getEpochsDesired, path = path, path.val = path.val, labels = labels, plginfo = plginfo[J(maxlen), path],
+    getEpochsDesired = getEpochsDesired, path = path, path.val = path.val, labels = labels, plgpath = plginfo[J(maxlen), path],
     outputdir = OUTPUTDIR, parallel = MAX.PARALLEL, testrun = dodemo)
 } else {
   evaluateMboRun(save.file.path, fidelity, MAX.PARALLEL)

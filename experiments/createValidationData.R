@@ -1,14 +1,14 @@
 
-# source this file, 
+library("GNArchitect")
+library("deepG")
+source("experiments/config/experimentinfo.R")  # loads path, path.val, genseed, plginfo
 
-source("config/experimentinfo.R")  # loads path, path.val, genseed, plginfo
-
-getvalgen <- function(maxlen, batch.size) {
+getvalgen <- function(maxlen, batch.size, proportion_per_file = NULL) {
   initializeGenerators(directories = path.val, format = "fasta", batch.size = batch.size, maxlen = maxlen,
     vocabulary = c("a", "c", "g", "t"), verbose = FALSE, randomFiles = TRUE, step = maxlen,
     showWarnings = FALSE, seed = genseed[[2]], shuffleFastaEntries = TRUE, skip_amb_nuc = 0.001,
     numberOfFiles = NULL, fileLog = NULL, reverseComplements = FALSE, reverseComplementEncoding = FALSE, val = TRUE,
-    ambiguous_nuc = "discard", proportion_per_file = c(0.1, 0.9, 0.9), read_data = FALSE,
+    ambiguous_nuc = "discard", proportion_per_file = proportion_per_file, read_data = FALSE,
     use_quality_score = FALSE, padding = FALSE, max_samples = 1,
     split_seq = FALSE, concat_seq = NULL, added_label_path = NULL,
     add_input_as_seq = NULL, use_coverage = NULL, set_learning = NULL,
@@ -19,9 +19,9 @@ getvalgen <- function(maxlen, batch.size) {
     reshape_mode = NULL, buffer_len = NULL, concat_maxlen = NULL)
 }
 
-makePLG <- function(maxlen) {
+makePLG <- function(maxlen, proportion_per_file = NULL) {
   ml <- maxlen # avoid nameclash in data.table
-  system.time(preloadPLG(getvalgen(maxlen, 1e2 * length(path.val)), plginfo[J(ml), samplesize] / 1e2, plginfo[J(ml), path]))
+  system.time(preloadPLG(getvalgen(maxlen, 1e2 * length(path.val), proportion_per_file = proportion_per_file), plginfo[J(ml), samplesize] / 1e2, plginfo[J(ml), path]))
 }
 
 #### Create preloaded generator for maxlen 150:

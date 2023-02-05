@@ -15,6 +15,7 @@ parallelMap_*
 *.conf
 *.ssv
 .RData
+*_batchtools_reg_*
 
 R/plots/*
 R/results/*
