@@ -115,17 +115,6 @@ echo Running experiment $EXPERIMENT_INDEX
 Rscript experiments/runMbo.R run data/opt_local_${EXPERIMENT_INDEX}.RData
 ```
 
-
-
-, and the `runMbo.R` script therefore needs to be executed for run-indices 1 to 8. This amounts to running the following commands (although distriuted to different sessions to run them simultaneously, in our case).
-```sh
-cd experiments
-./runMbo.R init ../data/opt_1.RData 1 ; ./runMbo.R run ../data/opt_1.RData
-./runMbo.R init ../data/opt_2.RData 2 ; ./runMbo.R run ../data/opt_2.RData
-# [...]
-./runMbo.R init ../data/opt_8.RData 8 ; ./runMbo.R run ../data/opt_8.RData
-```
-
 ## Analysis of Results
 
 The `analysis` folder contains scripts that convert the resulting optimization databases (`data/opt_<n>.RData`, in our case) more fit to analysis and extract a few results and plots.
