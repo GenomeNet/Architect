@@ -109,7 +109,7 @@ Do the following from the shell:
 EXPERIMENT_INDEX=1
 
 echo Initializing file for experiment $EXPERIMENT_INDEX
-Rscript experiments/runMbo.R init data/opt_local_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX --demo
+Rscript experiments/runMbo.R init data/opt_local_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX
 
 echo Running experiment $EXPERIMENT_INDEX
 Rscript experiments/runMbo.R run data/opt_local_${EXPERIMENT_INDEX}.RData
@@ -172,6 +172,22 @@ Internally, GenomeNet Architect uses [`batchtools`](https://mllg.github.io/batch
 For this, you need to modify the `batchtools.conf.R` file and use a different `makeClusterFunctions*()`.
 See the [documentation of `batchtools`](https://mllg.github.io/batchtools/articles/batchtools.html) about this.
 You also need to set the `MAX.PARALLEL` entry in the `experiments/config/parallelization.R` manually to the number of parallel processes you want to use.
+
+#### Test Runs
+
+To check your parallelization setup, you can create "demo"-experimental setups.
+Initialize a demo-experiment by appending `--demo` to the `runMbo.R --init` invocation:
+
+```sh
+EXPERIMENT_INDEX=1
+
+Rscript experiments/runMbo.R init data/opt_local_demo_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX --demo
+```
+
+If you evaluate this, individual evaluations will run very quickly, so you can check that parallelization works:
+```sh
+Rscript experiments/runMbo.R run data/opt_local_demo_${EXPERIMENT_INDEX}.RData
+```
 
 ### Data Location
 
