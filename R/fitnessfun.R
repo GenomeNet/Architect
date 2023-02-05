@@ -17,10 +17,10 @@
 #' @param getEpochsDesired (`function`)\cr
 #'   A `function` that maps a `numeric(1)`, indicating walltime in number of seconds, to an integer
 #'   valued `numeric(1)`, indicating the number of epochs that should approximately be evaluated.
-#' @param path (`character(1)`)\cr
-#'   Training data path.
-#' @param path.val (`character(1)`)\cr
-#'   Validation data path.
+#' @param path (`character`)\cr
+#'   Training data paths.
+#' @param path.val (`character`)\cr
+#'   Validation data paths.
 #' @param labels (`character`)\cr
 #'   Class labels.
 #' @param plgpath (`character(1)`)\cr
@@ -32,8 +32,8 @@
 makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.val, labels, plgpath, outdir) {
   assertFunction(getEpochsDesired)
   assertInt(getEpochsDesired(3600))
-  assertString(path)
-  assertString(path.val)
+  assertCharacter(path, min.len = 1, any.missing = FALSE)
+  assertCharacter(path.val, len = length(path), any.missing = FALSE)
   
   obj.genomenet.fn <- function(x) {
 
@@ -42,7 +42,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
 
     ########
     # Data setup
-    source("config/experimentinfo.R")
+    source("experiments/config/experimentinfo.R")
     run.name <- sprintf("run_opt4_%s_%s",
       gsub("[ :]", "_", sprintf("%s", Sys.time())),
       paste(sample(letters, 10, replace = TRUE), collapse = "")

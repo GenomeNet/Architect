@@ -3,3 +3,5 @@
 ^analysis$
 ^experiments$
 ^data$
+^trainingdata$
+_batchtools_reg_

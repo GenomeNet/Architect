@@ -2,12 +2,20 @@
 
 ## Installation
 
+First, install `tensorflow`, as it is needed by `deepG`.
+
+```r
+install.packages("tensorflow")
+tensorflow::install_tensorflow()
+```
+
 Evaluation currently needs an old version of `deepG`, and a few other other packages with bugfix-patches applied that are not yet upstream:
 
 ```r
 remotes::install_github("mb706/mlrMBO@manualmultifid")  # warmstart-patc of mlrMBO
 remotes::install_github("mlr-org/parallelMap@batchtoolsfix")  # parallelMap with batchtools
 remotes::install_github("GenomeNet/deepG@always_validate")  # deepG evaluation patch
+install.packages("snow")  # used for default parallelization
 ```
 
 Then install the GNArchitect package:
@@ -16,42 +24,100 @@ Then install the GNArchitect package:
 remotes::install_github("GenomeNet/Architect")
 ```
 
-## MBO Experiments
+GenomeNet Architect requires that R is able to access GPUs.
+You can check this by running
+```r
+tensorflow::tf$config$list_physical_devices("GPU")
+```
+The result should list one or more "`PhysicalDevice`"s.
+If the result is an empty list, even though your machine does have a GPU, then something went wrong while installing tensorflow.
 
-Scripts that help conducting the experiments are located in the `experiments/` folder.
+## Running Optimization
 
-### Prepare Experiments
+All of the following assumes that you have cloned this repository, and that your current working directory is the base of this repository.
 
-To conduct experiments, do the following:
+```sh
+git clone 'https://github.com/GenomeNet/Architect'
+cd Architect
+```
 
-1. Clone this repository.
-2. Create a file `experiments/config/run.conf` with the line `OUTPUTDIR = "###"`, where `"###"` should instead be a path with sub-directory `###/tensorboard_opt/`, where the tensorboard output will be saved.
-3. Adjust the `experiments/config/experimentinfo.R` file to your specific needs: Where is your data stored, what are the sample sizes for the preloaded validation data generators, how many epochs should be evaluated when model evaluation takes a given amount of runtime? If you use one of the sequence lengths of 150 or 10000, then you only need to adjust the paths, since the other values for sample sizes etc. should work reasonably well.
-4. Adjust the `experiments/config/mboruns.R` to your needs. The `runs` `data.table` should list all the combinations of sequence length (`maxlen`), model type and residual block preference that you want to run. The default is to run a fully crossed design with lengths 150 and 10000. The `fidelity` `data.table` indicates for how many iterations each fidelity is evaluated. Our experiments show that 20 hour runs do not typically add much final model performance, so actual model optimization runs can be aborted before this stage is reached without much loss.
-5. Adjust `experiments/config/parallelization.R` to your parallelization setting. In our experiments we used `batchtools` parallelization, which we recommend, but it is also possible to use other parallelization (or none at all). For this, use a different `parallelMap::parallelStart***()` function, or omit the call. The only value in this file required elsewhere is `MAX.PARALLEL`, which should be set to the number of parallel workers available (1 if parallelization is not used).
+### Prepare Data
 
-    It is recommended to use `batchtools`. Read the [`batchtools` vignette](https://mllg.github.io/batchtools/articles/batchtools.html) on how to set it up for your cluster environment.
-6. Create pre-generated validation files (see `?readPLG()`) which are used for validation during optimization. Using pre-generated validation speeds up optimization, but creating these can take several hours. Change your working directory to `experiments/`, run an interactive R session, and source `createValidationData.R`. Then run `makePLG()` with the different values of `MAXLEN` you are using (the same values used in `experiments/config/experimentinfo.R` and `experiments/config/mboruns.R`). Since these calls individually take a long time, it is recommended that you run these in parallel manually, most easily by running two separate R sessions.
+Training data should be saved in the `trainingdata/` folder.
+There should be one folder for each class.
+Each of these folders in return should contain a folder `train/` for training and `validation/` for validation.
 
-### Experiment Scripts
+For a small demo run, you can use the mini-dataset provided in this repository.
+It consists of a small sample from the NCBI Genome database:
 
-Your setup is now ready for experiments. Scripts are present in the `experiments/` folder to do various things. All of these can be executed by running them directly (e.g. `./runMbo.R <args..>`) or using `RScript` (e.g. `RScript runMbo.R <args..>`). However, note that all of these must be run from within the `experiments/` folder.
+```sh
+tar xJf trainingdata/virus_bacteria_mini.tar.xz -C trainingdata
+```
 
-- **`evaluateRandomConfig.R`**: Evaluate a sampled configuration point. This can e.g. be useful to test the optimization environment. Run as `./evaluateRandomConfig.R <seed>`, with an integer value as random seed.
-- **`runMbo.R`**: Initialize an MBO run (i.e. create the optimization configuration file) or run the optimization.
+If you want to use training data located in a different folder, you need to modify the `path`, `path.val` and `labels` variables in the `experiments/config/experimentinfo.R` file; see the section on [Data Location](#data-location) below.
 
-    For optimization, at first a database file needs to be created, by calling `./runMbo.R init <filename> <experiment-index>`. `<filename>` is the database file created (which must not already exist), `<experiment-index>` is an index into the `runs` `data.table` in `config/mboruns.R`. It is possible to append `--demo` to create a toy-problem to test the parallelization setup.
+### Creating Validation Cache Files
 
-    Optimization is the evaluated by calling `runMbo.R run <filename>`. `<filename>` is the database file created using `runMBO.R init` before.
-- **`resetRuns.R`**: Small helper-file: copy an MBO database file and remove all runs except for the random initialization. Thit can e.g. be used to compare different fidelity-setups or using `thoroughify.R`.
-- **`thoroughify.R`**: Set the MBO surrogate optimization method to a more thorugh method. This takes more time than the default method and its benefits are not proven; this file was mostly used for internal experiments. Usage is not recommended.
-- **`retryRuns.R`**: Remove runs from the MBO database that failed. This can be used if runs failed for technical reasons (e.g. the cluster killed a job that would otherwise have succeeded) but should not be used as a datapoint for the surrogate model. Will never remove runs from the initial design.
+GenomeNet Architect pre-processes the validation data and saves the result in cache files, which saves time during performance evaluation since pre-processing does not need to be done again for every model fit (see `?readPLG()`).
+Note that this step needs to be done again if the validation data changes.
 
-A note on mbo database files (the ones created / used by `runMbo.R`): MBO *always* saves to the *original* path of the mbo database. Renaming, moving or copying the file is therefore not possible. The only exception is when a partial copy is created using `resetRuns.R`. You should *never* create a copy of an existing mbo database and run `runMbo.R run` on this file, since the original file will then be *overwritten*.
+The following creates the cache files for sequence lengths 150 and 10000 sequentially.
+However, since each of the `makePLG()` calls can take many hours, it is recommended to run both `makePLG()` steps in parallel sessions.
+
+```r
+source("experiments/createValidationData.R")
+makePLG(150)
+makePLG(10000)
+```
+
+Note that the dataset used in our paper requires a different `proportion_per_file` argument:
+```r
+source("experiments/createValidationData.R")
+makePLG(150, proportion_per_file = c(bacteria = 0.1, viral_no_phage = 0.9, viral_phage = 0.9))
+makePLG(10000, proportion_per_file = c(bacteria = 0.1, viral_no_phage = 0.9, viral_phage = 0.9))
+```
 
 ### Run MBO Optimization
 
-When you are confident that your setup is correct, run the experiments. For our experiments, we tried both "recurrent" and "gap" type networks, bot with and without residual blocks, and for sequence lengths of 150 and 10'000 nucleotides. The `runs` table in the `experiments/config/mboruns.R` has therefore 8 lines, and the `runMbo.R` script therefore needs to be executed for run-indices 1 to 8. This amounts to running the following commands (although distriuted to different sessions to run them simultaneously, in our case).
+Experiments are conducted for both "recurrent" and "gap" type networks, both with and without residual blocks, and for sequence lengths of 150 and 10'000 nucleotides -- 8 setups in total.
+The setups can be listed through the `runs` variable in `experiments/config/mboruns.R`.
+```r
+source("experiments/config/mboruns.R")
+runs
+#>    maxlen      type residual_block
+#> 1:    150       gap              0
+#> 2:    150       gap              1
+#> 3:    150 recurrent              0
+#> 4:    150 recurrent              1
+#> 5:  10000       gap              0
+#> 6:  10000       gap              1
+#> 7:  10000 recurrent              0
+#> 8:  10000 recurrent              1
+```
+
+Each experiment has an *experiment index*, corresponding to the row in tis table.
+E.g. the experiment with index 1 has `maxlen` set to 150, `type` set to `"gap"`, and `residual_block` set to 0.
+
+Each of these experiments needs to be run separately, either one after the other, or on different computers.
+
+The following uses the `experiments/runMbo.R` script to initialize an experiment file (which is stored in `data/`) and then starts its execution.
+Change the `EXPERIMENT_INDEX` variable to run a different experiment.
+
+Do the following from the shell:
+
+```sh
+EXPERIMENT_INDEX=1
+
+echo Initializing file for experiment $EXPERIMENT_INDEX
+Rscript experiments/runMbo.R init data/opt_local_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX
+
+echo Running experiment $EXPERIMENT_INDEX
+Rscript experiments/runMbo.R run data/opt_local_${EXPERIMENT_INDEX}.RData
+```
+
+
+
+, and the `runMbo.R` script therefore needs to be executed for run-indices 1 to 8. This amounts to running the following commands (although distriuted to different sessions to run them simultaneously, in our case).
 ```sh
 cd experiments
 ./runMbo.R init ../data/opt_1.RData 1 ; ./runMbo.R run ../data/opt_1.RData
@@ -85,4 +151,112 @@ The `data/optruns.rds` file then contains a named list with the following entrie
     - information about the model and its invocation: `batchsize`, ..., `numepochs`
     - `runid`: index into `runs` table in `experiments/config/mboruns.R`
     - `walltime`: time limit given to trainNetwork
+
+## Changing the Experimental Setup
+
+Depending on the environment in which you are running GenomeNet Architect, or depending on the task you are trying to solve, you may need to adjust some of the evaluation settings.
+The following describes how to change various settings.
+
+### Parallelization and Number of GPUs
+
+The current setup runs performance evaluations locally and parallelizes automatically to all GPUs that are listed in the `CUDA_VISIBLE_DEVICES` environmental variable.
+
+If you want to use a different number of parallel processes, you need to change two files:
+
+1. Set the `MAX.PARALLEL` entry in the `experiments/config/parallelization.R` file to the desired number of parallel threads.
+2. Set the `ncpus` argument of the `makeClusterFunctionsSocket()` call in the `batchtools.conf.R` file to the same value.
+   Ignore the `default.resources` entry: here `ncpus` should remain 1!
+
+Internally, GenomeNet Architect uses [`batchtools`](https://mllg.github.io/batchtools/index.html) for parallelization.
+`batchtools` makes it possible to parallelize on a compute cluster, i.e. use different GPUs on different compute nodes at the same time.
+For this, you need to modify the `batchtools.conf.R` file and use a different `makeClusterFunctions*()`.
+See the [documentation of `batchtools`](https://mllg.github.io/batchtools/articles/batchtools.html) about this.
+You also need to set the `MAX.PARALLEL` entry in the `experiments/config/parallelization.R` manually to the number of parallel processes you want to use.
+
+#### Test Runs
+
+To check your parallelization setup, you can create "demo"-experimental setups.
+Initialize a demo-experiment by appending `--demo` to the `runMbo.R --init` invocation:
+
+```sh
+EXPERIMENT_INDEX=1
+
+Rscript experiments/runMbo.R init data/opt_local_demo_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX --demo
+```
+
+If you evaluate this, individual evaluations will run very quickly, so you can check that parallelization works:
+```sh
+Rscript experiments/runMbo.R run data/opt_local_demo_${EXPERIMENT_INDEX}.RData
+```
+
+### Data Location
+
+The location of the training / validation data is determined in the `experiments/config/experimentinfo.R` file.
+By default, all folders found in the `trainingdata/` folder are used, and it is assumed that these folders each have a `train/` and `validation/` subfolder (see the content of the `trainingdata/virus_bacteria_mini.tar.xz` file for an example).
+
+If your data is in a different folder, you should modify the `path`, `path.val`, and `labels` variables:
+
+* `path` and `path.val` should both be vectors, containing one entry for each class, pointing to folders containing FASTA files.
+`path` is used for training, `path.val` for validation.
+* `labels` should contain the labels for the classes found in the directories; there must be one label for each folder in `path`.
+  By default, it uses the directory names of the `path` where the `/train` folder is located.
+  If you are using a different folder setup, you likely need to adjust the `labels` as well.
+
+When the content of your validation data changes, you need to re-create the validation cache files, see the [`Creating Validation Cache Files`](#creating-validation-cache-files) section above.
+
+### Sequence Lengths
+
+In its current setup, GenomeNet Architect will perform optimization for networks that have an input sequence length of 150 nt, as well as 10'000 nt.
+To change the sequence lengths being used, you need to modify two files:
+
+1. Change the `MAXLEN` variable in the `experiments/config/mboruns.R` file.
+  This variable can be a vector of any length; To do experiments with only 150 nucleotides, for example, set `MAXLEN <- 150`.
+2. If necessary, change the `maxlen` entries in the `plginfo` table found in the `experiments/config/experimentinfo.R`.
+  `maxlen` in `plginfo` must contain the value(s) you entered in `MAXLEN` above.
+  If you change `maxlen` in `plginfo`, the validation cache files need to be re-created, see the [`Creating Validation Cache Files`](#creating-validation-cache-files) section above.
+
+The `MAXLEN` variable in `mboruns.R` determines which lengths are *actually* evaluated, while `plginfo` in `experimentinfo.R` determines which validation data is cached.
+The latter is allowed to be a superset of the former.
+This means that if you want to modify `MAXLEN` to only evaluate 150 nt sequences, there is no need to modify `plginfo`.
+
+### Network Types
+
+The `TYPE` and `RESIDUAL_BLOCK` variables in `experiments/config/mboruns.R` determine which experiments are conducted.
+By default, both recurrent networks and GAP-networks are optimized, both with and without residual blocks.
+To restrict the kinds of evaluations being done, you can change these variables.
+E.g. to only optimize GAP-networks, set `TYPE <- "gap"`.
+
+Alternatively, you can also modify the `runs` variable. The default setup uses both "recurrent" and "gap" type networks, bot with and without residual blocks, and for sequence lengths of 150 and 10'000 nucleotides.
+The `runs` table in the `experiments/config/mboruns.R` has therefore 8 lines.
+
+### Fidelity Steps
+
+The `fidelity` table in `experiments/config/mboruns.R` controls how the walltime timeout changes over the course of optimization.
+MBO first evaluates an initial design, around 50 points, with the topmost `walltimehrs` as timeout (in hours).
+It then traverses this table from top to bottom.
+In the default setup, it runs 150 evaluations with 2 hours timeout, then 100 configurations with 6 hours timeout etc.
+Modify this table to change the timeout of point evaluations.
+
+### TensorBoard
+
+GenomeNet Architect makes it possible to inspect performance evaluation runs via [TensorBoard](https://www.tensorflow.org/tensorboard).
+TensorBoard logs are written to the `logs/tensorboard_opt` folder.
+You can change the `OUTPUTDIR` variable in the `experiments/config/run.conf` file to set tensorboard output to a different location.
+GenomeNet Architect will write to the `tensorboard_opt` folder found in the directory indicated by `OUTPUTDIR`.
+
+### Experiment Scripts
+
+Your setup is now ready for experiments. Scripts are present in the `experiments/` folder to do various things. All of these can be executed by running them directly (e.g. `./runMbo.R <args..>`) or using `RScript` (e.g. `RScript runMbo.R <args..>`). However, note that all of these must be run from within the `experiments/` folder.
+
+- **`evaluateRandomConfig.R`**: Evaluate a sampled configuration point. This can e.g. be useful to test the optimization environment. Run as `./evaluateRandomConfig.R <seed>`, with an integer value as random seed.
+- **`runMbo.R`**: Initialize an MBO run (i.e. create the optimization configuration file) or run the optimization.
+
+    For optimization, at first a database file needs to be created, by calling `./runMbo.R init <filename> <experiment-index>`. `<filename>` is the database file created (which must not already exist), `<experiment-index>` is an index into the `runs` `data.table` in `config/mboruns.R`. It is possible to append `--demo` to create a toy-problem to test the parallelization setup.
+
+    Optimization is the evaluated by calling `runMbo.R run <filename>`. `<filename>` is the database file created using `runMBO.R init` before.
+- **`resetRuns.R`**: Small helper-file: copy an MBO database file and remove all runs except for the random initialization. Thit can e.g. be used to compare different fidelity-setups or using `thoroughify.R`.
+- **`thoroughify.R`**: Set the MBO surrogate optimization method to a more thorugh method. This takes more time than the default method and its benefits are not proven; this file was mostly used for internal experiments. Usage is not recommended.
+- **`retryRuns.R`**: Remove runs from the MBO database that failed. This can be used if runs failed for technical reasons (e.g. the cluster killed a job that would otherwise have succeeded) but should not be used as a datapoint for the surrogate model. Will never remove runs from the initial design.
+
+A note on mbo database files (the ones created / used by `runMbo.R`): MBO *always* saves to the *original* path of the mbo database. Renaming, moving or copying the file is therefore not possible. The only exception is when a partial copy is created using `resetRuns.R`. You should *never* create a copy of an existing mbo database and run `runMbo.R run` on this file, since the original file will then be *overwritten*.
 

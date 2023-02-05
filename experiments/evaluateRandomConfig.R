@@ -6,12 +6,13 @@
 # Usage: evaluateRandomConfig.R <seed>
 
 library("GNArchitect")
-
-source("run.conf")
+library("checkmate")
+library("mlrCPO")
+source("experiments/config/run.conf")
 assertString(OUTPUTDIR, .var.name = "OUTPUTDIR, which should be defined in run.conf")
 
 
-source("config/experimentinfo.R")  # loads path, path.val, labels, plginfo, and getEpochsDesired
+source("experiments/config/experimentinfo.R")  # loads path, path.val, labels, plginfo, and getEpochsDesired
 
 
 set.seed(as.numeric(commandArgs(trailingOnly = TRUE)[[1]]))
@@ -30,7 +31,7 @@ ss <- c(ss, pSS(
 
 x <- sampleValue(ss, trafo = TRUE)
 
-obj.genomenet.fn <- makeGenomeNetObjective(MAXLEN, TYPE, getEpochsDesired, path, path.val, labels, plginfo[J(MAXLEN), path], OUTPUTDIR) {
+obj.genomenet.fn <- makeGenomeNetObjective(MAXLEN, TYPE, getEpochsDesired, path, path.val, labels, plginfo[J(MAXLEN), path], OUTPUTDIR)
 
 print(system.time(res <- obj.genomenet.fn(x)))
 

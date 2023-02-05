@@ -86,7 +86,8 @@ newRSession <- function(x, defaultargs) {
   while (session$get_state() == "starting") Sys.sleep(1)
 
   session$run(args = list(x = x, defaultargs = defaultargs), function(x, defaultargs) {
-    source("gpuhelpers.R")
+    source("R/gpuhelpers.R")
+    library("GNArchitect")
     .GlobalEnv$model <- do.call(create_model_genomenet, x)
     .GlobalEnv$defaultargs <- defaultargs
     .GlobalEnv$gc <- reticulate::import("gc")
