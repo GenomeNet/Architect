@@ -7,4 +7,5 @@
 #' @import mlr
 #' @import ParamHelpers
 #' @import magrittr
+#' @import data.table
 NULL

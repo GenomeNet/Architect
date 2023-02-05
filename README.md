@@ -95,12 +95,27 @@ runs
 #> 8:  10000 recurrent              1
 ```
 
-Use the `experiments/runMbo.R` script to initialize each experiment separately.
+Each experiment has an *experiment index*, corresponding to the row in tis table.
+E.g. the experiment with index 1 has `maxlen` set to 150, `type` set to `"gap"`, and `residual_block` set to 0.
+
+Each of these experiments needs to be run separately, either one after the other, or on different computers.
+
+The following uses the `experiments/runMbo.R` script to initialize an experiment file (which is stored in `data/`) and then starts its execution.
+Change the `EXPERIMENT_INDEX` variable to run a different experiment.
+
 Do the following from the shell:
 
 ```sh
-Rscript experiments/runMbo.R init data/opt_local_1.RData 1
+EXPERIMENT_INDEX=1
+
+echo Initializing file for experiment $EXPERIMENT_INDEX
+Rscript experiments/runMbo.R init data/opt_local_${EXPERIMENT_INDEX}.RData $EXPERIMENT_INDEX --demo
+
+echo Running experiment $EXPERIMENT_INDEX
+Rscript experiments/runMbo.R run data/opt_local_${EXPERIMENT_INDEX}.RData
 ```
+
+
 
 , and the `runMbo.R` script therefore needs to be executed for run-indices 1 to 8. This amounts to running the following commands (although distriuted to different sessions to run them simultaneously, in our case).
 ```sh
