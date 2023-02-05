@@ -7,11 +7,11 @@
 
 library("GNArchitect")
 
-source("run.conf")
+source("experiments/config/run.conf")
 assertString(OUTPUTDIR, .var.name = "OUTPUTDIR, which should be defined in run.conf")
 
 
-source("config/experimentinfo.R")  # loads path, path.val, labels, plginfo, and getEpochsDesired
+source("experiments/config/experimentinfo.R")  # loads path, path.val, labels, plginfo, and getEpochsDesired
 
 
 set.seed(as.numeric(commandArgs(trailingOnly = TRUE)[[1]]))
