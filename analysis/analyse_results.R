@@ -124,7 +124,7 @@ plotProgress(maxlen = 10000, maxtime = 6, color.by = "walltime.hrs", plot.x = "c
 ############################################
 
 analysing <- cbind(optruns$optpath.x, optruns$metainfo)
-analysing <- analysing[walltime == 6 * 3600 & maxlen == 150]
+analysing <- analysing[walltime == 6 * 3600 & maxlen == 10000]
 analysing <- analysing[, colnames(analysing)[!duplicated(colnames(analysing))], with = FALSE]
 
 
@@ -154,7 +154,7 @@ analysing[, yperc := yrank / length(y), by = c("walltime", "maxlen")]
 
 analysing[order(yperc)]
 
-suppressWarnings(analysing.transposed <- melt(analysing, id.vars = "pointid", measure.vars = params.params))
+suppressWarnings(analysing.transposed <- melt(analysing, id.vars = c("pointid", "yrank", "yperc", "y"), measure.vars = params.params))
 
 
 analysing.transposed[analysing, model_type := namemaps.binary$model_type[model_type, name], on = "pointid"]
@@ -178,5 +178,18 @@ ggplot() +
   theme_bw() + theme(axis.text.x = element_text(angle = 90))
 
 
+
+ggplot() +
+  geom_quasirandom(data = plotting[variable %in% params.continuous], aes(x = variable, y = value, alpha = tier), dodge.width = 0, color = "black") +
+  geom_point(data = plotting[variable %in% params.continuous & pointid %in% analysing[yrank == 1, pointid] & tier == "top10percent"],
+    aes(x = variable, y = value, alpha = tier), size = 5, shape = 25, fill = "white", stroke = 2) +
+  theme_bw() + theme(axis.text.x = element_text(angle = 90))
+
+
+ggplot() +
+  geom_quasirandom(data = analysing.transposed[variable %in% params.continuous], aes(x = variable, y = value, alpha = yperc <= .1,
+    shape = yrank == 1, size = yrank == 1, stroke = yrank == 1), fill = "white", dodge.width = 0, color = "black") +
+  scale_shape_manual(values = c(19, 23)) + scale_size_manual(values = c(3, 4)) + ggplot2:::manual_scale("stroke", c(0.1, 2), waiver()) +
+  theme_bw() + theme(axis.text.x = element_text(angle = 90))
 
 
