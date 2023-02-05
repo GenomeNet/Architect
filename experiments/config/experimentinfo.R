@@ -13,7 +13,7 @@ labels <- basename(dirname(path))  # could also be something like `c("virus", "b
 
 plginfo <- data.table::data.table(
   maxlen = c(150, 10000),
-  samplesize = c(1e3, 1e3),
+  samplesize = c(1e4, 1e4),
   path = c("trainingdata/plg150_bnp.rds", "trainingdata/plg10k_bnp.rds")
 )
 data.table::setkeyv(plginfo, "maxlen")

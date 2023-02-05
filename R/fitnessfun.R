@@ -42,7 +42,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
 
     ########
     # Data setup
-    source("config/experimentinfo.R")
+    source("experiments/config/experimentinfo.R")
     run.name <- sprintf("run_opt4_%s_%s",
       gsub("[ :]", "_", sprintf("%s", Sys.time())),
       paste(sample(letters, 10, replace = TRUE), collapse = "")
