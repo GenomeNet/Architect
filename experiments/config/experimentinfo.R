@@ -4,11 +4,11 @@
 # - How many epochs to evaluate at what walltime value
 
 genseed <- c(645, 456)
-datapaths <- paste0("/vol/projects/BIFO/genomenet/training_data/", c("bacteria_1_3", "viral-no-phage_1_3", "viral-phage_1_3"))
+datapaths <- list.dirs("trainingdata", full.names = TRUE, recursive = FALSE)
 path <- paste0(datapaths, "/train")
 path.val <- paste0(datapaths, "/validation")
 
-labels <- c("bacteria", "virus-no-phage","virus-phage")
+labels <- basename(datapaths)
 
 
 plginfo <- data.table::data.table(
