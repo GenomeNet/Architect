@@ -184,6 +184,7 @@ If your data is in a different folder, you should modify the `path`, `path.val`,
 * `labels` should contain the labels for the classes found in the directories; there must be one label for each folder in `path`.
   By default, it uses the directory names of the `path` where the `/train` folder is located.
   If you are using a different folder setup, you likely need to adjust the `labels` as well.
+* It may also be a good idea to adjust the `proportion_per_file` variable; it corresponds to the [`proportion_per_seq` argument of deepG's `train_model()` function](https://deepg.de/reference/train_model.html).
 
 When the content of your validation data changes, you need to re-create the validation cache files, see the [`Creating Validation Cache Files`](#creating-validation-cache-files) section above.
 
