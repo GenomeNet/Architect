@@ -55,6 +55,7 @@ tar xJf trainingdata/virus_bacteria_mini.tar.xz -C trainingdata
 ```
 
 If you want to use training data located in a different folder, you need to modify the `path`, `path.val` and `labels` variables in the `experiments/config/experimentinfo.R` file; see the section on [Data Location](#data-location) below.
+It may also be a good idea to adjust the `proportion_per_file` variable; it corresponds to the [`proportion_per_seq` argument of deepG's `train_model()` function](https://deepg.de/reference/train_model.html).
 
 ### Creating Validation Cache Files
 
@@ -68,13 +69,6 @@ However, since each of the `makePLG()` calls can take many hours, it is recommen
 source("experiments/createValidationData.R")
 makePLG(150)
 makePLG(10000)
-```
-
-Note that the dataset used in our paper requires a different `proportion_per_file` argument:
-```r
-source("experiments/createValidationData.R")
-makePLG(150, proportion_per_file = c(bacteria = 0.1, viral_no_phage = 0.9, viral_phage = 0.9))
-makePLG(10000, proportion_per_file = c(bacteria = 0.1, viral_no_phage = 0.9, viral_phage = 0.9))
 ```
 
 ### Run MBO Optimization
