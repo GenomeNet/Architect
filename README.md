@@ -251,9 +251,9 @@ Scripts are present in the `experiments/` folder to do various things. All of th
 - **`evaluateRandomConfig.R`**: Evaluate a sampled configuration point. This can e.g. be useful to test the optimization environment. Run as `experiments/evaluateRandomConfig.R <seed>`, with an integer value as random seed.
 - **`runMbo.R`**: Initialize an MBO run (i.e. create the optimization configuration file) or run the optimization.
 
-    For optimization, at first a database file needs to be created, by calling `./runMbo.R init <filename> <experiment-index>`. `<filename>` is the database file created (which must not already exist), `<experiment-index>` is an index into the `runs` `data.table` in `config/mboruns.R`. It is possible to append `--demo` to create a toy-problem to test the parallelization setup.
+    For optimization, at first a database file needs to be created, by calling `experiments/runMbo.R init <filename> <experiment-index>`. `<filename>` is the database file created (which must not already exist), `<experiment-index>` is an index into the `runs` `data.table` in `experiments/config/mboruns.R`. It is possible to append `--demo` to create a toy-problem to test the parallelization setup.
 
-    Optimization is the evaluated by calling `runMbo.R run <filename>`. `<filename>` is the database file created using `runMBO.R init` before.
+    Optimization is the evaluated by calling `experiments/runMbo.R run <filename>`. `<filename>` is the database file created using `experiments/runMBO.R init` before.
 - **`resetRuns.R`**: Small helper-file: copy an MBO database file and remove all runs except for the random initialization. Thit can e.g. be used to compare different fidelity-setups or using `thoroughify.R`.
 - **`thoroughify.R`**: Set the MBO surrogate optimization method to a more thorugh method. This takes more time than the default method and its benefits are not proven; this file was mostly used for internal experiments. Usage is not recommended.
 - **`retryRuns.R`**: Remove runs from the MBO database that failed. This can be used if runs failed for technical reasons (e.g. the cluster killed a job that would otherwise have succeeded) but should not be used as a datapoint for the surrogate model. Will never remove runs from the initial design.
