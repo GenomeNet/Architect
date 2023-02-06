@@ -80,7 +80,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
       reverseComplements = FALSE,
       reverseComplementEncoding = x$reverse_encoding,
       ambiguous_nuc = "discard", # CHANGED as compared to previous MBO runs (see code Anil)
-      proportion_per_file = c(0.1, 0.9,0.9),
+      proportion_per_file = proportion_per_file,
       seed = c(645, 456), # ANIL CHECK: Before we had random seeds; what do you think?
       skip_amb_nuc = 0.001,
       lr.plateau.factor = 0.5,
@@ -111,6 +111,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
     gen.val <- readPLG(plgpath, batchsize = defaultargs$batch.size,
       numbatches = validation.steps, reverseComplementEncoding = x$reverse_encoding)
 
+    validation.steps <- environment(readPLG)$numbatches %??% validation.steps
 
     time.per.epoch <- walltime / epochs.desired
 

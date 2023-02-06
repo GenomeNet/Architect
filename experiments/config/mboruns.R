@@ -23,7 +23,7 @@ runs <- data.table::CJ(maxlen = MAXLEN, type = TYPE, residual_block = RESIDUAL_B
 # ~ all remaining: big runs
 
 fidelity <- data.table::rbindlist(list(
-    list(walltimehrs = 0.5, iters = 150),
+    list(walltimehrs = 0.05, iters = 150),
     list(walltimehrs = 6, iters = 100),
     list(walltimehrs = 20, iters = Inf)
 ))

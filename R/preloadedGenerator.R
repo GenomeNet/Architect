@@ -7,6 +7,9 @@ listGenerator <- function(l, batchsize, numbatches, reverseComplementEncoding = 
   stopifnot(batchsize %% length(l) == 0)
   stopifnot(batchsize %% 1 == 0 && batchsize > 0)
   stopifnot(numbatches %% 1 == 0 && numbatches > 0)
+  if (numbatches * batchsize > length(l) * NROW(l[[1]])) {
+    numbatches <- floor(length(l) * NROW(l[[1]]) / batchsize)
+  }
   stopifnot(numbatches * batchsize <= length(l) * NROW(l[[1]]))
   stopifnot(isTRUE(reverseComplementEncoding) || isFALSE(reverseComplementEncoding))
 
