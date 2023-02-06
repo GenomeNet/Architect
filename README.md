@@ -132,7 +132,7 @@ The `analysis` folder contains scripts that convert the resulting optimization d
 
 ### `collect_run_results.R`
 
-`analysis/collect_run_results.R` is used to collect the results of all optimization runs into a single file, `data/optruns.rds`. It should be executed from the root folder. The script assumes that results are in the `data` folder with the name pattern `data/opt_<i>.RData`. `<i>` should range from 1 to the number of rows of `runs` in `experiments/config/experimentinfo.R`. Adjust the `basepath` variable in this script if it is not the case.
+`analysis/collect_run_results.R` is used to collect the results of all optimization runs into a single file, `data/optruns.rds`. It should be executed from the root folder. The script assumes that results are in the `data` folder with the name pattern `data/opt_<i>.RData`. `<i>` should range from 1 to the number of rows of `runs` in `experiments/config/experimentinfo.R`. Adjust the `basepath` variable in this script to use other data.
 
 ```sh
 RScript analysis/collect_run_results.R
@@ -244,11 +244,11 @@ TensorBoard logs are written to the `logs/tensorboard_opt` folder.
 You can change the `OUTPUTDIR` variable in the `experiments/config/run.conf` file to set tensorboard output to a different location.
 GenomeNet Architect will write to the `tensorboard_opt` folder found in the directory indicated by `OUTPUTDIR`.
 
-### Experiment Scripts
+## Experiment Script Overview
 
-Your setup is now ready for experiments. Scripts are present in the `experiments/` folder to do various things. All of these can be executed by running them directly (e.g. `./runMbo.R <args..>`) or using `RScript` (e.g. `RScript runMbo.R <args..>`). However, note that all of these must be run from within the `experiments/` folder.
+Scripts are present in the `experiments/` folder to do various things. All of these can be executed by running them directly (e.g. `experiments/runMbo.R <args..>`) or using `RScript` (e.g. `Rscript experiments/runMbo.R <args..>`). Note that all of these must be run from the root folder of this repository.
 
-- **`evaluateRandomConfig.R`**: Evaluate a sampled configuration point. This can e.g. be useful to test the optimization environment. Run as `./evaluateRandomConfig.R <seed>`, with an integer value as random seed.
+- **`evaluateRandomConfig.R`**: Evaluate a sampled configuration point. This can e.g. be useful to test the optimization environment. Run as `experiments/evaluateRandomConfig.R <seed>`, with an integer value as random seed.
 - **`runMbo.R`**: Initialize an MBO run (i.e. create the optimization configuration file) or run the optimization.
 
     For optimization, at first a database file needs to be created, by calling `./runMbo.R init <filename> <experiment-index>`. `<filename>` is the database file created (which must not already exist), `<experiment-index>` is an index into the `runs` `data.table` in `config/mboruns.R`. It is possible to append `--demo` to create a toy-problem to test the parallelization setup.
