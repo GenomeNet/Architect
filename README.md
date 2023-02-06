@@ -9,7 +9,7 @@ install.packages("tensorflow")
 tensorflow::install_tensorflow()
 ```
 
-Evaluation currently needs a few modified versions of `deepG`, and a few other other packages:
+Evaluation currently needs a few modified versions of `deepG` and other packages:
 
 ```r
 remotes::install_github("mb706/mlrMBO@manualmultifid")  # warmstart-patc of mlrMBO
