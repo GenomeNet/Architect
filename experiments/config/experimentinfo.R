@@ -4,12 +4,12 @@
 # - How many epochs to evaluate at what walltime value
 
 genseed <- c(645, 456)
-datapaths <- list.dirs("trainingdata", full.names = TRUE, recursive = FALSE)
+datapaths <- sort(list.dirs("trainingdata", full.names = TRUE, recursive = FALSE))
 path <- paste0(datapaths, "/train")
 path.val <- paste0(datapaths, "/validation")
 
 labels <- basename(dirname(path))  # could also be something like `c("virus", "bacteria")`
-
+proportion_per_file <- 1
 
 plginfo <- data.table::data.table(
   maxlen = c(150, 10000),

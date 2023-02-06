@@ -19,7 +19,7 @@ getvalgen <- function(maxlen, batch.size, proportion_per_file = NULL) {
     reshape_mode = NULL, buffer_len = NULL, concat_maxlen = NULL)
 }
 
-makePLG <- function(maxlen, proportion_per_file = NULL) {
+makePLG <- function(maxlen, proportion_per_file = proportion_per_file) {
   ml <- maxlen # avoid nameclash in data.table
   system.time(preloadPLG(getvalgen(maxlen, 1e2 * length(path.val), proportion_per_file = proportion_per_file), plginfo[J(ml), samplesize] / 1e2, plginfo[J(ml), path]))
 }
