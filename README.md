@@ -89,7 +89,7 @@ runs
 #> 8:  10000 recurrent              1
 ```
 
-Each experiment has an *experiment index*, corresponding to the row in tis table.
+Each experiment has an *experiment index*, which corresponds to a row in this table.
 E.g. the experiment with index 1 has `maxlen` set to 150, `type` set to `"gap"`, and `residual_block` set to 0.
 
 Each of these experiments needs to be run separately, either one after the other, or on different computers.
