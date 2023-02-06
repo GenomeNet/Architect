@@ -43,7 +43,7 @@ tryModelMemory <- function(batchmultiplier, session) {
         tensorflow::tf$keras$backend$clear_session()
         gc$collect()
         tensorflow::tf$keras$backend$clear_session()
-        GNArchitect:::invoke(.f = trainNetwork, .args = defaultargs,
+        GNArchitect:::invoke(.f = deepG::trainNetwork, .args = defaultargs,
           model = model,
           batch.size = batchmultiplier * length(defaultargs$labelVocabulary),
           epochs = 2,
