@@ -43,7 +43,7 @@ tryModelMemory <- function(batchmultiplier, session) {
         tensorflow::tf$keras$backend$clear_session()
         gc$collect()
         tensorflow::tf$keras$backend$clear_session()
-        invoke(.f = trainNetwork, .args = defaultargs,
+        GNArchitect:::invoke(.f = trainNetwork, .args = defaultargs,
           model = model,
           batch.size = batchmultiplier * length(defaultargs$labelVocabulary),
           epochs = 2,
@@ -226,7 +226,7 @@ measureEpochTime <- function(steps, defaultargs, gen.val = NULL, validations = 0
   defaultargs$validation_only_after_training <- TRUE
   system.time({
     tryCatch({
-      invoke(.f = trainNetwork, .args = defaultargs,
+      GNArchitect:::invoke(.f = trainNetwork, .args = defaultargs,
         epochs = 1,
         steps.per.epoch = steps,
         output = list(none = TRUE, checkpoints = FALSE, tensorboard = FALSE,

@@ -5,3 +5,4 @@
 ^data$
 ^trainingdata$
 _batchtools_reg_
+^logs$
