@@ -1,1 +1,1 @@
-
+Here we upload the models with the highest class-balanced accuracy performance for the phage / non-phage / bacteria classification task. The two models takes one-hot encoded genome sequences of length 150 and 10,000. These models contain 150 and 10k in the model names respectively.
