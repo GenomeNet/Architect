@@ -3,7 +3,7 @@
 # Which combinations of hyperparameters to optimize for, and which fidelity to use.
 
 # All combinations of the following
-MAXLEN <- c(150, 10000)
+MAXLEN <- 250  # c(150, 10000)
 TYPE <- c("recurrent", "gap")
 RESIDUAL_BLOCK <- c(0, 1)
 

@@ -14,7 +14,7 @@ library("GNArchitect")
 
 options(warn = 1)
 
-arguments <- commandArgs(trailingOnly=TRUE)
+arguments <- commandArgs(trailingOnly = TRUE)
 
 demoarg <- "--demo"
 
@@ -32,7 +32,7 @@ if (!length(arguments) ||
   stop(sprintf("Usage: <script> init|run <filename> [<experiment index, between %s and %s>, only for 'init'] [--demo]", 1, nrow(runs)))
 }
 
-save.file.path = arguments[[2]]
+save.file.path <- arguments[[2]]
 
 if (dodemo) {
   fidelity <- data.table::rbindlist(list(
@@ -44,16 +44,6 @@ if (dodemo) {
   # use 'fidelity' from config/mboruns.R
 }
 
-## # Is now in mlrMBO
-##
-## predictLearner.regr.nuggetkm <- function(.learner, .model, ...) {
-##   res <- NextMethod()
-##   res[, 2] <- sqrt(pmax(res[, 2]^2 - .model$learner.model@covariance@nugget, 0))
-##   res
-## }
-##
-## registerS3method("predictLearner", "regr.nuggetkm", predictLearner.regr.nuggetkm)
-
 if (arguments[[1]] == "init") {
   i <- assertInt(as.numeric(arguments[[3]]), lower = 1, upper = nrow(runs), tol = 1e-100)
   maxlen <- runs[i, maxlen]
@@ -64,4 +54,3 @@ if (arguments[[1]] == "init") {
 } else {
   evaluateMboRun(save.file.path, fidelity, MAX.PARALLEL)
 }
-

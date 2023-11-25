@@ -2,6 +2,8 @@
 #'
 #' @description
 #' `initMboRun()` creates an `mlrMBO` `OptProblem` that optimizes the hyperparameters of the model created by `create_model_genomenet()`.
+#' The default surrogate model is slightly modified to make it more robust to constant feature values, and to use epistemic uncertainty
+#' exclusively, instead of the default epistemic + aleatoric uncertainty.
 #'
 #"  `evaluateMboRun()` is given the path of the created savefile and runs the optimization.
 #'
@@ -102,7 +104,6 @@ Initial WALLTIME: %s hrs\n", save.file.path, maxlen, type, residual_block, WALLT
 
   designsize <- ceiling(getParamNr(getParamSet(obj), devectorize = TRUE) * 2 / (parallel - 1e-5) * parallel * failfactor)
 
-
   ctrl <- makeMBOControl(
       propose.points = parallel,
       impute.y.fun = function(x, y, opt.path, ...) {
@@ -121,17 +122,19 @@ Initial WALLTIME: %s hrs\n", save.file.path, maxlen, type, residual_block, WALLT
     setMBOControlMultiPoint(method = "cb") %>%
     setMBOControlTermination(iters = 1)
 
+  learner <- makeMBOLearner(control = ctrl, fun = obj,
+    config = list(show.learner.output = FALSE, on.learner.error = ctrl$on.surrogate.error))
+  class(learner) <- c("regr.nuggetkm", class(learner))
+  learner <- mlrCPO::cpoDropConstants() %>>% learner
 
   opt.problem <- mlrMBO:::initOptProblem(
     fun = obj,
     design = generateRandomDesign(n = designsize, par.set = getParamSet(obj)),
     control = ctrl,
     show.info = TRUE,
-    learner = NULL,
+    learner = learner,
     more.args = list()
   )
-
-  class(opt.problem$learner$next.learner) <- c("regr.nuggetkm", class(opt.problem$learner$next.learner))
 
   opt.state <- opt.problem
 

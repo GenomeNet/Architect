@@ -2,7 +2,7 @@
 
 # Evaluate a single invocation of the objective function.
 # maxlen, type, and residual_block are chosen randomly.
-# 
+#
 # Usage: evaluateRandomConfig.R <seed>
 
 library("GNArchitect")
@@ -17,7 +17,7 @@ source("experiments/config/experimentinfo.R")  # loads path, path.val, labels, p
 
 set.seed(as.numeric(commandArgs(trailingOnly = TRUE)[[1]]))
 
-MAXLEN <- sample(c(150, 10000), 1)
+MAXLEN <- 250 # sample(c(150, 10000), 1)
 RESIDUALBLOCK <- sample(0:1, 1)
 TYPE <- sample(c("recurrent", "gap"), 1)
 WALLTIME <- 3600

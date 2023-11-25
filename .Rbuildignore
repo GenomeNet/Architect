@@ -4,5 +4,7 @@
 ^experiments$
 ^data$
 ^trainingdata$
+^trainingdata_bad$
 _batchtools_reg_
 ^logs$
+^trained_models$

@@ -12,8 +12,8 @@ tensorflow::install_tensorflow()
 Evaluation currently needs a few modified versions of `deepG` and other packages:
 
 ```r
-remotes::install_github("mb706/mlrMBO@manualmultifid")  # warmstart-patc of mlrMBO
-remotes::install_github("mlr-org/parallelMap@batchtoolsfix")  # parallelMap with batchtools
+remotes::install_github("mlr-org/mlrMBO@imputefun_metainfo")  # mlrMBO bugfix
+remotes::install_github("mlr-org/parallelMap@batchtoolsfix")  # parallelMap batchtools bugfix
 remotes::install_github("GenomeNet/deepG@always_validate")  # deepG evaluation patch
 install.packages("snow")  # used for default parallelization
 ```

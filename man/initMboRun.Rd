@@ -73,6 +73,8 @@ An `OptProblem` created by `mlrMBO:::initOptProblem`
 }
 \description{
 `initMboRun()` creates an `mlrMBO` `OptProblem` that optimizes the hyperparameters of the model created by `create_model_genomenet()`.
+The default surrogate model is slightly modified to make it more robust to constant feature values, and to use epistemic uncertainty
+exclusively, instead of the default epistemic + aleatoric uncertainty.
 
 
 Initial design size is 4% larger than the default, which would be 2 * number

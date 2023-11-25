@@ -26,11 +26,11 @@ One of `"gap"` or `"recurrent`.}
 A `function` that maps a `numeric(1)`, indicating walltime in number of seconds, to an integer
 valued `numeric(1)`, indicating the number of epochs that should approximately be evaluated.}
 
-\item{path}{(`character(1)`)\cr
-Training data path.}
+\item{path}{(`character`)\cr
+Training data paths.}
 
-\item{path.val}{(`character(1)`)\cr
-Validation data path.}
+\item{path.val}{(`character`)\cr
+Validation data paths.}
 
 \item{labels}{(`character`)\cr
 Class labels.}

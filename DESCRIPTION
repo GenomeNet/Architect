@@ -29,5 +29,6 @@ Imports:
   tensorflow,
   callr,
   rgenoud,
+  parallelly,
   magrittr
-RoxygenNote: 7.2.2
+RoxygenNote: 7.2.3

@@ -8,4 +8,5 @@
 #' @import ParamHelpers
 #' @import magrittr
 #' @import data.table
+#' @importFrom parallelly availableCores
 NULL

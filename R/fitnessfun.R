@@ -80,14 +80,15 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
       reverseComplements = FALSE,
       reverseComplementEncoding = x$reverse_encoding,
       ambiguous_nuc = "discard", # CHANGED as compared to previous MBO runs (see code Anil)
-      proportion_per_file = proportion_per_file,
+      proportion_per_file = proportion_per_file_default,
       seed = c(645, 456), # ANIL CHECK: Before we had random seeds; what do you think?
       skip_amb_nuc = 0.001,
       lr.plateau.factor = 0.5,
       reduce_lr_on_plateau = FALSE,
       validation_only_after_training = FALSE,
       padding = FALSE,
-      tensorboard.log = file.path(outdir, "tensorboard_opt")
+      tensorboard.log = file.path(outdir, "tensorboard_opt"),
+      generator.cores = 1
     )
 
     # get batch size
@@ -114,7 +115,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
     validation.steps <- environment(readPLG)$numbatches %??% validation.steps
 
     time.per.epoch <- walltime / epochs.desired
-
+    defaultargs$generator.cores <- generator.cores
     steps.per.epoch <- estimateStepsPerEpoch(time.per.epoch, defaultargs, gen.val = gen.val, validationsteps = validation.steps)
 
     validation.split <- (validation.steps - 0.5) / steps.per.epoch

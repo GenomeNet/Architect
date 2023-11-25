@@ -53,6 +53,7 @@ tryModelMemory <- function(batchmultiplier, session) {
           validation.split = 0.5,
           max_samples = NULL  # no max_samples, we don't care about the data.
         )
+        gc() ; gc() ; gc() ; gc()
       })
     TRUE
   }, error = function(e) {
@@ -224,6 +225,7 @@ evaluatePerf <- function(x, epochs_desired) {
 # evaluate `steps` steps and `validations` validations and measure runtime.
 measureEpochTime <- function(steps, defaultargs, gen.val = NULL, validations = 0) {
   defaultargs$validation_only_after_training <- TRUE
+  on.exit({gc() ; gc() ; gc() ; gc()})
   system.time({
     tryCatch({
       GNArchitect:::invoke(.f = trainNetwork, .args = defaultargs,
@@ -266,8 +268,9 @@ measureEpochTime <- function(steps, defaultargs, gen.val = NULL, validations = 0
 #' @return `numeric(1)`: The recommended number of steps per epoch.
 #' @export
 estimateStepsPerEpoch <- function(time.per.epoch, defaultargs, gen.val, validationsteps) {
+  corefactor <- defaultargs$generator.cores  # need to respect number of cores used for generator, othrewise overhead drowns out everything else
   # We expect steps to take at least 1ms / sample
-  time.theoretical <- defaultargs$batch.size * .001
+  time.theoretical <- defaultargs$batch.size * .0005
   time.per.validation.samples <- 40  # tps evaluation will take about 60 seconds; worst observed case 2 minutes.
   time.per.validation.samples <- min(time.per.validation.samples, validationsteps * 2)  # if validationsteps is small we don't need that much accuracy
   time.validation.theoretical <- 5 * time.per.validation.samples
@@ -281,14 +284,14 @@ estimateStepsPerEpoch <- function(time.per.epoch, defaultargs, gen.val, validati
   # warmup:
   cat("Time measurement -- Warmup: load model to gpu etc...\n")
   defaultargs$seed <- defaultargs$seed + 1  # adjust training data seed
-  time <- measureEpochTime(1, defaultargs = defaultargs)
+  time <- measureEpochTime(corefactor, defaultargs = defaultargs) / corefactor
   cat(sprintf("Warmup took %.3fs\n", time))
 
   if (time > time.per.epoch) {
     cat("warmup alone took more than we want to use per epoch --> just use one step per epoch.\n")
-    return(1)
+    return(corefactor)
   }
-  cat("Time measurement -- single step.\n")
+  cat("Time measurement -- single step (overhead).\n")
   defaultargs$seed <- defaultargs$seed + 1
   time <- measureEpochTime(1, defaultargs = defaultargs)
   time.1.original <- time
@@ -297,16 +300,33 @@ estimateStepsPerEpoch <- function(time.per.epoch, defaultargs, gen.val, validati
     cat(sprintf("Ignoring this because of lower time limit. Correcting %.3fs --> %.3fs.\n", time, time.theoretical))
     time <- time.theoretical
   }
+  if (corefactor > 1) {
+    cat("Time measurement -- single step per core.\n")
+    corefactor.timing.raw <- measureEpochTime(corefactor, defaultargs = defaultargs)
+    time <- (corefactor.timing.raw - time.1.original) / corefactor
+    cat(sprintf("Single step took %.3fs\n", time))
+    if (time < time.theoretical) {
+      cat(sprintf("Ignoring this because of lower time limit. Correcting %.3fs --> %.3fs.\n", time, time.theoretical))
+      time <- time.theoretical
+    }
+  }
+
   steps.estimate <- max(1, round(time.per.epoch / time))
   if (time > time.per.epoch / 5) {
     cat(sprintf("Single step took more than 20%% of what we want to use per epoch --> Assume we don't need more accuracy here, using %s steps.\n", steps.estimate))
     return(steps.estimate)
   }
 
-  steps.timing <- max(steps.estimate, 10)
+  steps.timing <- max(steps.estimate, 10 * corefactor)
   cat(sprintf("Time measurement -- Current estimate: %s steps per epoch. Next time measurement round with %s steps.\n", steps.estimate, steps.timing))
   defaultargs$seed <- defaultargs$seed + 1
-  time.total <- measureEpochTime(steps.timing, defaultargs = defaultargs)
+  if (steps.timing <= corefactor) {
+    cat(sprintf("Time measurement -- suggested timing steps %s not more than corefactor %s -- skipping.\n", steps.timing, corefactor))
+    time.total <- corefactor.timing.raw
+    steps.timing <- corefactor
+  } else {
+    time.total <- measureEpochTime(steps.timing, defaultargs = defaultargs)
+  }
   cat(sprintf("Measured %s, subtracting %.3fs 1x-time against constant offset.\n", time.total, time.1.original))
   if (time.1.original > time.total) {
     time.1.original <- time.total
