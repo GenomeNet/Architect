@@ -297,7 +297,7 @@ create_model_genomenet <- function(
   }
 
   output_tensor <- output_tensor %>%
-    keras::layer_dense(units = num_targets, activation = "softmax")
+    keras::layer_dense(units = num_targets, activation = "linear")
 
   # define "model" as the mapping from input_tensor to output_tensor
   model <- keras::keras_model(inputs = input_tensor, outputs = output_tensor)
@@ -323,7 +323,7 @@ create_model_genomenet <- function(
     sgd = keras::optimizer_sgd(lr = learning.rate)
   )
 
-  model %>% keras::compile(loss = "categorical_crossentropy", optimizer = keras_optimizer, metrics = "acc")
+  model %>% keras::compile(loss = "mse", optimizer = keras_optimizer)
 
   args <- formals()
   given_args <- as.list(match.call()[-1])
