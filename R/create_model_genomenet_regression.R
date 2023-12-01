@@ -118,7 +118,7 @@
 #'   Number of output units to create.
 #' @return A keras model.
 #' @export
-create_model_genomenet <- function(
+create_model_genomenet_regression <- function(
   maxlen = 300,
   learning.rate = 0.001,
   number_of_cnn_layers = 1,
