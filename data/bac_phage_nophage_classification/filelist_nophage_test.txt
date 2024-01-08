@@ -1,5 +1,3 @@
-.
-..
 GCA_003823375.1_ASM382337v1_genomic.fasta
 GCA_003823395.1_ASM382339v1_genomic.fasta
 GCA_003823415.1_ASM382341v1_genomic.fasta

@@ -1,5 +1,3 @@
-.
-..
 GCA_002163385.1_ViralProj388458_genomic.fasta
 GCA_002163405.1_ViralProj388459_genomic.fasta
 GCA_002184195.1_ViralProj388402_genomic.fasta
