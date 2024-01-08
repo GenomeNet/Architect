@@ -1,5 +1,4 @@
 GCA_000299555.2_ASM29955v2_genomic.fasta
-GCA_000299555.2_ASM29955v2_genomic_predictions.npy
 GCA_000300435.2_ASM30043v2_genomic.fasta
 GCA_000618005.3_ASM61800v3_genomic.fasta
 GCA_000746025.2_ASM74602v2_genomic.fasta
