@@ -34,7 +34,7 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
   assertInt(getEpochsDesired(3600))
   assertCharacter(path, min.len = 1, any.missing = FALSE)
   assertCharacter(path.val, len = length(path), any.missing = FALSE)
-  
+
   obj.genomenet.fn <- function(x) {
 
     #  - performance: maximum of validation points
@@ -59,7 +59,10 @@ makeGenomeNetObjective <- function(maxlen, type, getEpochsDesired, path, path.va
     # 10+h -> 200
     epochs.desired <- getEpochsDesired(walltime)
 
-    x <- cleanUpX(x, num_targets = length(labels))
+    x <- cleanUpX(x)
+    x$walltime <- NULL
+    x$num_targets <- length(labels)
+
 
     cat("Evaluating: ")
     cat(deparse(x))

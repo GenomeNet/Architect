@@ -17,7 +17,7 @@
 #'   specific search space components.
 #' @return a [`ParamSet`].
 #' @export
-get_searchspace <- function(maxlen, type) {
+getSearchspaceDefault <- function(maxlen, type) {
 
   assertCount(maxlen)
   assertChoice(type, c("gap", "recurrent"))
@@ -63,12 +63,12 @@ get_searchspace <- function(maxlen, type) {
   return(searchspace)
 }
 
-#' @title Clean up Sampled Values for [`create_model_genomenet()`]
+#' @title Trafo Values Sampled Values from the Default Search Space
 #'
 #' @description
 #' Even though some of the hyperparameters of the [`create_model_genomenet()`]
 #' network are categorical, it is easier to use a urely numeric search space,
-#' e.g. the one created by [`get_searchspace()`]. `cleanUpX()` converts
+#' e.g. the one created by [`getSearchSpaceDefault()`]. `cleanUpX()` converts
 #' numeric values to the right type for [`create_model_genomenet()`].
 #'
 #' @param x (`list`)\cr
@@ -77,13 +77,9 @@ get_searchspace <- function(maxlen, type) {
 #'   Value to set the `num_targets` entry in the resulting `list` to.
 #' @return `list`: the converted hyperparameter values.
 #' @export
-cleanUpX <- function(x, num_targets) {
-  x$walltime <- NULL
-
-  x$num_targets <- num_targets
-
+trafoSearchSpaceDefault <- function(x) {
   # Recoding (avoiding discrete parameters to use the GP)
-  x$residual_block <- as.logical(x$residual_block)
+x$residual_block <- as.logical(x$residual_block)
   x$optimizer <- ifelse(x$optimizer == 0, "adam", "adagrad")
   x$dense_activation <- ifelse(x$dense_activation == 0, "relu", "tanh")
   x$reverse_encoding <- as.logical(x$reverse_encoding)

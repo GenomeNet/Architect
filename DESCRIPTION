@@ -1,4 +1,4 @@
-Package: GNArchitect
+Package: GenomeNet.Architect
 Title: Focused Architecture Search for Genome Sequence Data
 Description: Robust framework for automated hyperparameter optimization and
   architecture search using 'deepG' and 'mlrMBO'.

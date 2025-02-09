@@ -88,7 +88,7 @@ newRSession <- function(x, defaultargs) {
 
   session$run(args = list(x = x, defaultargs = defaultargs), function(x, defaultargs) {
     source("R/gpuhelpers.R")
-    library("GNArchitect")
+    library("GenomeNet.Architect")
     .GlobalEnv$model <- do.call(create_model_genomenet, x)
     .GlobalEnv$defaultargs <- defaultargs
     .GlobalEnv$gc <- reticulate::import("gc")
@@ -133,8 +133,9 @@ newRSession <- function(x, defaultargs) {
 #' @return `numeric(1)`: Recommended, reasonably safe, batch size.
 #' @export
 estimateBatchSize <- function(x, defaultargs, tolerance = 0.05, downgrade = 0.9, upper.limit = NULL) {
-  session <- newRSession(x, defaultargs)
   on.exit(session$close())
+  session <- newRSession(x, defaultargs)
+
 
   upper.limit <- upper.limit %??% if (x$maxlen > 1000) 400 else 2048  # highest batchmultiplier to try
   downgrade <- 0.9  # safety factor to apply to highest batchmultiplier that worked

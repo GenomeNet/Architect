@@ -12,13 +12,13 @@ tensorflow::install_tensorflow()
 Evaluation currently needs a few modified versions of `deepG` and other packages:
 
 ```r
-remotes::install_github("mlr-org/mlrMBO@imputefun_metainfo")  # mlrMBO bugfix
-remotes::install_github("mlr-org/parallelMap@batchtoolsfix")  # parallelMap batchtools bugfix
-remotes::install_github("GenomeNet/deepG@always_validate")  # deepG evaluation patch
+remotes::install_github("GenomeNet/deepG@994ba37")  # most recent tested deepG version
+remotes::install_github("mlr-org/mlrMBO@imputefun_metainfo")  # mlrMBO impute with extra attributes
+remotes::install_github("mlr-org/parallelMap")  # parallelMap batchtools bugfix that is not on CRAN yet
 install.packages("snow")  # used for default parallelization
 ```
 
-Then install the GNArchitect package:
+Then install the `GenomeNet.Architect` package:
 
 ```r
 remotes::install_github("GenomeNet/Architect")
@@ -32,7 +32,7 @@ tensorflow::tf$config$list_physical_devices("GPU")
 The result should list one or more "`PhysicalDevice`"s.
 If the result is an empty list, even though your machine does have a GPU, then something went wrong while installing tensorflow.
 
-## Running Optimization
+## Example Optimization Run
 
 All of the following assumes that you have cloned this repository, and that your current working directory is the base of this repository.
 
@@ -43,20 +43,20 @@ cd Architect
 
 ### Prepare Data
 
-Training data should be saved in the `trainingdata/` folder.
-There should be one folder for each class.
-Each of these folders in return should contain a folder `train/` for training and `validation/` for validation.
-
 For a small demo run, you can use the mini-dataset provided in this repository.
-It consists of a small sample from the NCBI Genome database:
+It consists of a small sample from the NCBI Genome database.
+It does classification by folder.
 
 ```sh
 tar xJf trainingdata/virus_bacteria_mini.tar.xz -C trainingdata
 ```
 
-If you want to use training data located in a different folder, you need to modify the `path`, `path.val` and `labels` variables in the `experiments/config/experimentinfo.R` file; see the section on [Data Location](#data-location) below.
-It may also be a good idea to adjust the `proportion_per_file` variable; it corresponds to the [`proportion_per_seq` argument of deepG's `train_model()` function](https://deepg.de/reference/train_model.html).
+### Define Run Parameters
 
+
+```r
+
+```
 ### Creating Validation Cache Files
 
 GenomeNet Architect pre-processes the validation data and saves the result in cache files, which saves time during performance evaluation since pre-processing does not need to be done again for every model fit (see `?readPLG()`).
@@ -135,7 +135,19 @@ The `data/optruns.rds` file then contains a named list with the following entrie
     - `runid`: index into `runs` table in `experiments/config/mboruns.R`
     - `walltime`: time limit given to trainNetwork
 
-## Changing the Experimental Setup
+## 
+
+You need to prepare your training data in a format that is accepted by `deepG`.
+Currently, three setups are supported:
+
+* Classification of sequences by folder (one folder per class)
+* Classification of sequences by FASTA file headers
+* Classification or regression -- possibly multi-output -- of sequences by information read from a CSV file
+
+<!-- If you want to use training data located in a different folder, you need to modify the `path`, `path.val` and `labels` variables in the `experiments/config/experimentinfo.R` file; see the section on [Data Location](#data-location) below.
+It may also be a good idea to adjust the `proportion_per_file` variable; it corresponds to the [`proportion_per_seq` argument of deepG's `train_model()` function](https://deepg.de/reference/train_model.html). -->
+
+
 
 Depending on the environment in which you are running GenomeNet Architect, or depending on the task you are trying to solve, you may need to adjust some of the evaluation settings.
 The following describes how to change various settings.

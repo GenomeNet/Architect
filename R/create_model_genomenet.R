@@ -99,8 +99,10 @@
 #' @param model_type (`character(1)`)\cr
 #'   Whether to use the global average pooling (`"gap"`) or recurrent
 #'   (`"recurrent"`) model type.
-#' @param recurrent_type (`character(1)`)\cr
+#' @param recurrent_type (`character(1)` | `function`)\cr
 #'   Which recurrent network type to use. One of `"lstm"` or `"gru"`.
+#'   Alternatively a function similar to `keras::layer_lstm` with arguments `units`
+#'   and `return_sequences` that constructs a `keras` layer.
 #'   Only used when `model_type` is `"recurrent"`.
 #' @param recurrent_layers (integer `numeric(1)`)\cr
 #'   Number of recurrent layers.
@@ -116,6 +118,17 @@
 #'   input tensor shape, together with `maxlen`.
 #' @param num_targets (integer `numeric(1)`)\cr
 #'   Number of output units to create.
+#' @param output_activation (`character(1)`)\cr
+#'   Which activation function to use for the output layer. This is passed to
+#'   `keras::layer_dense` as the `activation` argument.
+#'   This is usually `"softmax"` for classification, and `"linear"` for
+#'   regression.
+#' @param metrics (`character(1)`)\cr
+#'   Which metrics to use for training. This is passed to `keras::compile` as
+#'   the `metrics` argument.
+#' @param loss (`character(1)`)\cr
+#'   Which loss function to use for training. This is passed to `keras::compile`
+#'   as the `loss` argument.
 #' @return A keras model.
 #' @export
 create_model_genomenet <- function(
@@ -145,41 +158,40 @@ create_model_genomenet <- function(
   recurrent_bidirectional = FALSE,
   recurrent_units = 100,
   vocabulary.size = 4,
-  num_targets = 2
+  num_targets = 2,
+  output_activation = "softmax",
+  metrics = "acc", # TODO: NULL for regression? or smth else? DO WE NEED THIS?
+  loss = "categorical_crossentropy" # TODO: "mse" for regression?
 ) {
 
-  stopifnot(maxlen > 0 & maxlen %% 1 == 0)
-  stopifnot(learning.rate > 0)
-  stopifnot(number_of_cnn_layers >= 1 & number_of_cnn_layers %% 1 == 0)
-  stopifnot(conv_block_count >= 1 & conv_block_count %% 1 == 0)
-  stopifnot(kernel_size_0 > 0)
-  stopifnot(kernel_size_end > 0)
-  stopifnot(filters_0 > 0)
-  stopifnot(filters_end > 0)
-  stopifnot(dilation_end >= 1)
-  stopifnot(max_pool_end >= 1)
-  stopifnot(dense_layer_num >= 0 & dense_layer_num %% 1 == 0)
-  stopifnot(dense_layer_units >= 0 & dense_layer_units %% 1 == 0)
-  stopifnot(0 <= dropout & dropout <= 1)
-  stopifnot(0 <= batch_norm_momentum & batch_norm_momentum <= 1)
-
-  stopifnot(0 <= leaky_relu_alpha& leaky_relu_alpha <= 1)
-  dense_activation <- match.arg(dense_activation, c("relu", "sigmoid", "tanh"))
-  stopifnot(0 <= skip_block_fraction & skip_block_fraction <= 1)
-
-  model_type = match.arg(model_type, c("gap", "recurrent"))
-
-  stopifnot(isTRUE(residual_block) || isFALSE(residual_block))
-  stopifnot(isTRUE(residual_block) || isFALSE(residual_block))
-
-  optimizer <- match.arg(optimizer, c("adam", "adagrad", "rmsprop", "sgd"))
-  recurrent_type <- match.arg(recurrent_type, c("lstm", "gru"))
-  stopifnot(recurrent_layers >= 1 & recurrent_layers %% 1 == 0)
-  stopifnot(isTRUE(recurrent_bidirectional) || isFALSE(recurrent_bidirectional))
-  stopifnot(recurrent_units >= 1 && recurrent_units %% 1 == 0)
-
-  stopifnot(vocabulary.size >= 2 & vocabulary.size %% 1 == 0)
-  stopifnot(num_targets >= 2 & num_targets %% 1 == 0)
+  assertCount(maxlen, positive = TRUE, tol = 0)
+  assertNumber(learning.rate, lower = .Machine$double.xmin, finite = TRUE)
+  assertCount(number_of_cnn_layers, positive = TRUE, tol = 0)
+  assertCount(conv_block_count, positive = TRUE, tol = 0)
+  assertNumber(kernel_size_0, lower = .Machine$double.xmin, finite = TRUE)
+  assertNumber(kernel_size_end, lower = .Machine$double.xmin, finite = TRUE)
+  assertNumber(filters_0, lower = .Machine$double.xmin, finite = TRUE)
+  assertNumber(filters_end, lower = .Machine$double.xmin, finite = TRUE)
+  assertNumber(dilation_end, lower = .Machine$double.xmin, finite = TRUE)
+  assertNumber(max_pool_end, lower = .Machine$double.xmin, finite = TRUE)
+  assertCount(dense_layer_num, tol = 0)
+  assertCount(dense_layer_units, tol = 0)
+  assertNumber(dropout, lower = 0, upper = 1)
+  assertNumber(batch_norm_momentum, lower = 0, upper = 1)
+  assertNumber(leaky_relu_alpha, lower = 0, upper = 1)
+  assertChoice(dense_activation, c("relu", "sigmoid", "tanh"))
+  assertNumber(skip_block_fraction, lower = 0, upper = 1)
+  assertFlag(residual_block)
+  assertFlag(reverse_encoding)
+  assertChoice(optimizer, c("adam", "adagrad", "rmsprop", "sgd"))
+  assertChoice(model_type, c("gap", "recurrent"))
+  assert(checkChoice(recurrent_type, c("lstm", "gru")), checkFunction(recurrent_type))
+  assertCount(recurrent_layers, positive = TRUE, tol = 0)
+  assertFlag(recurrent_bidirectional)
+  assertCount(recurrent_units, positive = TRUE, tol = 0)
+  assertInt(vocabulary.size, lower = 2, tol = 0)
+  assertCount(num_targets, positive = TRUE, tol = 0)
+  assertString(output_activation)
 
   if (number_of_cnn_layers < conv_block_count){
     conv_block_size <- 1
@@ -297,7 +309,7 @@ create_model_genomenet <- function(
   }
 
   output_tensor <- output_tensor %>%
-    keras::layer_dense(units = num_targets, activation = "softmax")
+    keras::layer_dense(units = num_targets, activation = output_activation)
 
   # define "model" as the mapping from input_tensor to output_tensor
   model <- keras::keras_model(inputs = input_tensor, outputs = output_tensor)
@@ -317,13 +329,13 @@ create_model_genomenet <- function(
   # assign optimization method
 
   keras_optimizer <- switch(optimizer,
-    adam = keras::optimizer_adam(lr = learning.rate),
-    adagrad = keras::optimizer_adagrad(lr = learning.rate),
-    rmsprop = keras::optimizer_rmsprop(lr = learning.rate),
-    sgd = keras::optimizer_sgd(lr = learning.rate)
+    adam = keras::optimizer_adam(learning_rate = learning.rate),
+    adagrad = keras::optimizer_adagrad(learning_rate = learning.rate),
+    rmsprop = keras::optimizer_rmsprop(learning_rate = learning.rate),
+    sgd = keras::optimizer_sgd(learning_rate = learning.rate)
   )
 
-  model %>% keras::compile(loss = "categorical_crossentropy", optimizer = keras_optimizer, metrics = "acc")
+  model %>% keras::compile(loss = loss, optimizer = keras_optimizer, metrics = metrics)
 
   args <- formals()
   given_args <- as.list(match.call()[-1])
@@ -335,6 +347,3 @@ create_model_genomenet <- function(
 
   model
 }
-
-
-
